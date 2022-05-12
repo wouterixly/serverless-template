@@ -1,17 +1,20 @@
 # In this file, we define load_model
 # It runs once at server startup to load the model to a GPU
 
-# In this example: A Huggingface BERT model
-
-from transformers import pipeline
+import torch
+from speechbrain.pretrained import EncoderClassifier
 
 def load_model():
 
-    # load the model from cache or local file to the CPU
-    model = pipeline('fill-mask', model='bert-base-uncased', device=0)
+    # obtain device for GPU
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        return None
 
-    # transfer the model to the GPU
-    # N/A for this example, it's already on the GPU
+    # load the model from cache or local file to the GPU
+    classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="./resources/spkrec-ecapa-voxceleb", run_opts={"device": device})
 
     # return the callable model
-    return model
+    return classifier
+
