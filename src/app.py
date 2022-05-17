@@ -20,11 +20,13 @@ def inference(request):
         model_inputs = request.json
 
     # Parse out your arguments
-    prompt = model_inputs.get('prompt', None)
-    if prompt == None:
-        return response.json({'message': "No prompt provided"})
+    signal = model_inputs.get('signal', None)
+    sr = model_inputs.get('sr', None)
+    offsets = model_inputs.get('offsets', None)
+    if signal == None:
+        return response.json({'message': "No signal provided"})
     
-    output = run_model(model, prompt)
+    output = run_model(model, signal, sr, offsets)
 
     return response.json(output) # Do not edit - returning a dictionary as JSON is a required interface
 

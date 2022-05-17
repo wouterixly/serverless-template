@@ -3,7 +3,7 @@
 
 import torch
 
-def run_model(classifier, prompt):
+def run_model(classifier, signal, sr, offsets):
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -12,9 +12,8 @@ def run_model(classifier, prompt):
     # do preprocessing
     # prompt is a json of audio array, sample rate, and offsets
 
-    audio = torch.tensor(prompt['signal'])
-    sr = prompt['sr']
-    offsets = torch.tensor(prompt['offsets'])
+    audio = torch.tensor(signal)
+    offsets = torch.tensor(offsets)
 
     durations = (offsets[:,1] * sr).to(torch.int) - (offsets[:,0] * sr).to(torch.int)
 
