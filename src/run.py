@@ -18,7 +18,7 @@ def run_model(classifier, prompt):
 
     durations = (offsets[:,1] * sr).to(torch.int) - (offsets[:,0] * sr).to(torch.int)
 
-    step = 15
+    step = 16
     out = torch.tensor(()).to(device)
 
     for i in range(0,len(offsets), step):
