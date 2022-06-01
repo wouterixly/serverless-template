@@ -3,7 +3,7 @@ from warmup import load_model
 from run import run_model
 
 # do the warmup step globally, to have a reuseable model instance
-model = load_model()
+model1, model2 = load_model()
 
 app = Sanic("my_app")
 
@@ -20,13 +20,12 @@ def inference(request):
         model_inputs = request.json
 
     # Parse out your arguments
-    signal = model_inputs.get('signal', None)
-    sr = model_inputs.get('sr', None)
-    offsets = model_inputs.get('offsets', None)
-    if signal == None:
-        return response.json({'message': "No signal provided"})
+    s3_url = model_inputs.get("s3_url")
+
+    if s3_url == None:
+        return response.json({'message': "No URL provided"})
     
-    output = run_model(model, signal, sr, offsets)
+    output = run_model(model1, model2, s3_url)
 
     return response.json(output) # Do not edit - returning a dictionary as JSON is a required interface
 

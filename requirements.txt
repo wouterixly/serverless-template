@@ -1,4 +1,7 @@
 sanic
-torch
+torch==1.11.0
 torchaudio
-speechbrain
+transformers
+scikit-learn==0.24.2
+speechbrain==0.5.11
+requests==2.27.1

@@ -1,24 +1,32 @@
 # In this file, we define run_model
 # It runs every time the server is called
 
+import pickle
 import torch
+import requests
+from sklearn.cluster import KMeans
 
-def run_model(classifier, signal, sr, offsets):
+def run_model(model1, model2, url):
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
     else:
         return None
     # do preprocessing
-    # prompt is a json of audio array, sample rate, and offsets
 
-    audio = torch.tensor(signal)
+    response = pickle.loads(requests.get(url).content)
+
+    audio = response['training_data']['interview_data']
+    sr = response['training_data']['sample_rate']
+    offsets = list(response['asr_df']['offsets'].values())
+    n_clusters = len(response['training_data']['speakers'])
+
     offsets = torch.tensor(offsets)
-
     durations = (offsets[:,1] * sr).to(torch.int) - (offsets[:,0] * sr).to(torch.int)
 
     step = 16
-    out = torch.tensor(()).to(device)
+    model1_out = torch.tensor(()).to(device)
+    model2_out = []
 
     for i in range(0,len(offsets), step):
     
@@ -42,9 +50,13 @@ def run_model(classifier, signal, sr, offsets):
         signals_batch_lens = durations[i:i+step]/local_max
 
         batch_cuda = signals_batch.to(device)
-        out = torch.cat((out, classifier.encode_batch(batch_cuda, signals_batch_lens)), 0 )
+        model1_out = torch.cat((model1_out, model1.encode_batch(batch_cuda, signals_batch_lens)), 0 )
+        model2_out.extend(model2.classify_batch(batch_cuda, signals_batch_lens)[3])     
 
     # do postprocessing
-    out = torch.squeeze(out).detach().cpu().tolist()
+    
 
-    return out
+    xvectors = torch.squeeze(model1_out).detach().cpu()
+    kmeans = KMeans(n_clusters=n_clusters).fit(xvectors)
+
+    return {'clusters':kmeans.labels_.tolist(), 'emos':model2_out}
